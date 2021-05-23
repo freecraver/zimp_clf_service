@@ -43,6 +43,87 @@ def train():
     return 'Model trained', 200
 
 
+@app.route("/predict", methods=['POST'])
+def predict():
+    """
+    Predict the class label of one input text. Requires a previous train-call
+    ---
+    parameters:
+      - in: body
+        name: body
+        schema:
+          required:
+            - text
+          properties:
+            text:
+              type: string
+    responses:
+      400:
+        description: Invalid Text or model not previously trained
+      200:
+        description: Predicted class label
+        schema:
+          required:
+            - label
+          properties:
+            label:
+              type: string
+    """
+    data = request.get_json()
+    if 'text' not in data:
+        return 'Missing text in body', 400
+    model = ClassificationProvider().get_model()
+    if not model.is_trained():
+        return 'Model not trained yet', 400
+    predicted_label = model.predict(data['text'])
+    return jsonify({'label': predicted_label})
+
+
+@app.route("/predict_proba", methods=['POST'])
+def predict_proba():
+    """
+    Predict probabilities for top n class labels. Requires a previous train-call
+    ---
+    parameters:
+      - in: body
+        name: body
+        schema:
+          required:
+            - text
+            - n
+          properties:
+            text:
+              type: string
+            n:
+              type: integer
+    responses:
+      400:
+        description: Invalid Text or model not previously trained
+      200:
+        description: Descending sorted probabilities for class labels
+        schema:
+          required:
+            - labels
+          properties:
+            labels:
+              type: array
+              items:
+                type: object
+                properties:
+                  label:
+                    type: string
+                  probability:
+                    type: number
+    """
+    data = request.get_json()
+    if 'text' not in data:
+        return 'Missing text in body', 400
+    model = ClassificationProvider().get_model()
+    if not model.is_trained():
+        return 'Model not trained yet', 400
+    p_labels = model.predict_proba(data['text'], data.get('n'))
+    return jsonify([{'label': p[0], 'probability': p[1]} for p in p_labels])
+
 
 @app.route("/spec")
 def spec():
