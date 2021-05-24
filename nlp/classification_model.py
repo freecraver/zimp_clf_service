@@ -36,10 +36,18 @@ class Model(ABC):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def get_dumped_model_path(self):
+        """
+        persists a trained model to a temp file, representation depends on actual model
+        :return: path to persisted temp model
+        """
+        raise NotImplementedError
+
     def predict(self, X):
         """
         uses the trained model to predict the most likely class label
         :param X: one text example (str)
         :return: predicted class label (str)
         """
-        return self.predict_proba(X, 1)[0]
+        return self.predict_proba(X, 1)[0, 0]

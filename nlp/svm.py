@@ -1,4 +1,5 @@
 import numpy as np
+from joblib import dump
 
 from sklearn.svm import SVC
 from nlp.classification_model import Model, PREDICT_PROBA_N
@@ -12,7 +13,7 @@ class SVM(Model):
         self.text_clf = Pipeline([
             ('vect', CountVectorizer(lowercase=False)),
             ('tfidf', TfidfTransformer()),
-            ('clf', SVC(random_state=42, probability=True))
+            ('clf', SVC(random_state=42))
         ])
 
     def train(self, X, y):
@@ -21,23 +22,25 @@ class SVM(Model):
     def is_trained(self):
         return hasattr(self.text_clf, 'classes_')
 
-    def predict(self, X):
-        return self.text_clf.predict([X])[0]
+    def get_dumped_model_path(self):
+        tmp_file = 'svm.joblib'
+        dump(self.text_clf, tmp_file)
+        return tmp_file
 
     def predict_proba(self, X, n=PREDICT_PROBA_N):
         """
-        note that probability estimates might not be perfectly calibrated for SVC, and top class label might not be the
-        same as for predict
+        note that SVM does not return probabilities, but outputs of the decision function,
+        this decision was made as the platt scaling for probability estimates works quite bad for small datasets
          https://scikit-learn.org/stable/modules/svm.html#scores-probabilities
         :param X: one input text
         :param n: number of labels to return, in case less target labels were trained the number of returned labels
             might be smaller
-        :return: iterable with entries of shape [class_label, probability], [str, float], sorted descending by
-        probability
+        :return: iterable with entries of shape [class_label, decision_val], [str, float], sorted descending by
+        decision value
         """
-        p = self.text_clf.predict_proba([X])
-        ret_idx = (-1*p).argsort()[:n]
-        return np.stack([self.text_clf.classes_[ret_idx], p.flatten()[ret_idx]], axis=2)[0]
+        dv = self.text_clf.decision_function([X])
+        ret_idx = (-1*dv).argsort()[:, :n]
+        return np.stack([self.text_clf.classes_[ret_idx], dv.flatten()[ret_idx]], axis=2)[0]
 
 
 

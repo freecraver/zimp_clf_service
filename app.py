@@ -3,7 +3,7 @@ This is very lightweight classification service used for training and evaluating
 in a containerized env
 """
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file, redirect
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
 
@@ -36,7 +36,7 @@ def train():
     if 'file' not in request.files:
         return 'File upload required', 400
     df = pd.read_csv(request.files.get('file'))
-    if df.shape[1] != 2 or len(set(df.columns) - set(['target', 'text'])) > 0:
+    if df.shape[1] != 2 or len(set(df.columns) - {'target', 'text'}) > 0:
         return 'Supplied invalid header columns. Must be text, target', 400
 
     ClassificationProvider().get_model().train(df['text'], df['target'])
@@ -70,7 +70,7 @@ def predict():
               type: string
     """
     data = request.get_json()
-    if 'text' not in data:
+    if data is None or 'text' not in data:
         return 'Missing text in body', 400
     model = ClassificationProvider().get_model()
     if not model.is_trained():
@@ -116,13 +116,41 @@ def predict_proba():
                     type: number
     """
     data = request.get_json()
-    if 'text' not in data:
+    if data is None or 'text' not in data:
         return 'Missing text in body', 400
     model = ClassificationProvider().get_model()
     if not model.is_trained():
         return 'Model not trained yet', 400
     p_labels = model.predict_proba(data['text'], data.get('n'))
     return jsonify([{'label': p[0], 'probability': p[1]} for p in p_labels])
+
+
+@app.route("/download")
+def download_model():
+    """
+    Retrieves an implementation-specific model dump (e.g. joblib for sklearn)
+    ---
+    responses:
+      400:
+        description: Model not previously trained
+      200:
+        description: Dumped model as file
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+    """
+    model = ClassificationProvider().get_model()
+    if not model.is_trained():
+        return 'Model not trained yet', 400
+    tmp_file_path = model.get_dumped_model_path()
+    return send_file(tmp_file_path)
+
+
+@app.route('/')
+def entry():
+    return redirect('/api/docs')
 
 
 @app.route("/spec")
