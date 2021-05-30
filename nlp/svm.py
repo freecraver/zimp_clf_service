@@ -2,6 +2,8 @@ import numpy as np
 from joblib import dump
 
 from sklearn.svm import SVC
+
+from config import SEED
 from nlp.classification_model import Model, PREDICT_PROBA_N
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
@@ -13,7 +15,7 @@ class SVM(Model):
         self.text_clf = Pipeline([
             ('vect', CountVectorizer(lowercase=False)),
             ('tfidf', TfidfTransformer()),
-            ('clf', SVC(random_state=42))
+            ('clf', SVC(random_state=SEED))
         ])
 
     def train(self, X, y):
