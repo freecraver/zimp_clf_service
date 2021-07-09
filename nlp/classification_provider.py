@@ -1,4 +1,5 @@
 from config import MODEL_TYPE
+from nlp.bert import Bert
 from nlp.fasttext import FastText
 from nlp.svm import SVM
 
@@ -21,5 +22,7 @@ class ClassificationProvider:
             return SVM()
         elif MODEL_TYPE == 'FASTTEXT':
             return FastText()
+        elif MODEL_TYPE == 'BERT':
+            return Bert()
 
         raise EnvironmentError('No valid MODEL_TYPE configured')
