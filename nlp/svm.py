@@ -1,4 +1,5 @@
 import numpy as np
+from pathlib import Path
 from joblib import dump
 
 from sklearn.svm import SVC
@@ -25,9 +26,9 @@ class SVM(Model):
         return hasattr(self.text_clf, 'classes_')
 
     def get_dumped_model_path(self):
-        tmp_file = 'svm.joblib'
+        tmp_file = Path('svm.joblib')
         dump(self.text_clf, tmp_file)
-        return tmp_file
+        return tmp_file.resolve()
 
     def predict_proba(self, X, n=PREDICT_PROBA_N):
         """

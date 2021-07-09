@@ -5,8 +5,10 @@ import numpy as np
 
 from config import SEED
 from nlp.classification_model import Model, PREDICT_PROBA_N
+from pathlib import Path
 
 FASTTEXT_LABEL_PREFIX = '__label__'
+
 
 class FastText(Model):
 
@@ -30,6 +32,6 @@ class FastText(Model):
         return np.stack([lbls, ps], axis=1)
 
     def get_dumped_model_path(self):
-        tmp_file = 'fasttext.bin'
-        self.model.save_model(tmp_file)
-        return tmp_file
+        tmp_file = Path('fasttext.bin')
+        self.model.save_model(str(tmp_file))
+        return tmp_file.resolve()
