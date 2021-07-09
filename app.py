@@ -8,6 +8,7 @@ from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
 
 import pandas as pd
+import json
 
 from nlp.classification_provider import ClassificationProvider
 
@@ -27,6 +28,10 @@ def train():
         name: file
         type: file
         description: The file to upload.
+      - in: formData
+        name: asynchronous
+        type: boolean
+        description: do not wait for training to complete
     responses:
       400:
         description: Required file missing or having invalid format
@@ -39,7 +44,12 @@ def train():
     if df.shape[1] != 2 or len(set(df.columns) - {'target', 'text'}) > 0:
         return 'Supplied invalid header columns. Must be text, target', 400
 
-    ClassificationProvider().get_model().train(df['text'], df['target'])
+    model = ClassificationProvider().get_model()
+    if json.loads(request.form.get('asynchronous', 'false')):
+        model.train_async(df['text'], df['target'])
+        return 'Training started', 200
+
+    model.train(df['text'], df['target'])
     return 'Model trained', 200
 
 
@@ -147,6 +157,21 @@ def download_model():
     tmp_file_path = model.get_dumped_model_path()
     return send_file(tmp_file_path)
 
+
+@app.route('/training/status')
+def get_training_status():
+    """
+    Checks if a trained model is available (and fully trained)
+    ---
+    responses:
+      200:
+        description: Indicator for availability of a trained model
+        schema:
+          properties:
+            isTrained:
+              type: boolean
+    """
+    return jsonify({'is_trained': ClassificationProvider().get_model().is_trained()})
 
 @app.route('/')
 def entry():

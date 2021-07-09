@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from threading import Thread
 
 PREDICT_PROBA_N=10
 
@@ -51,3 +52,15 @@ class Model(ABC):
         :return: predicted class label (str)
         """
         return self.predict_proba(X, 1)[0, 0]
+
+    def train_async(self, X, y):
+        """
+        trains a text classification model using the supplied data asynchronously
+        check if training finished using is_trained
+        @see train
+        :param X: iterable of training texts
+        :param y: iterable of training labels
+        :return: nothing
+        """
+        Thread(target=self.train,args=(X,y)).start()
+
