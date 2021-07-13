@@ -12,4 +12,6 @@ Configure desired model in `config.py`
 2. `python -m flask run`
 3. Goto 127.0.0.1:5000 and check the api reference
 
+## API
+![API Reference](doc/api_ref.png)
 
