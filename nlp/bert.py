@@ -33,12 +33,10 @@ class Bert(Model):
             X = X[:self.batch_size*self.max_train_steps]
             y = y[:self.batch_size*self.max_train_steps]
 
-        self.idx_to_label = list(set(y))
+        self.idx_to_label = sorted(list(set(y)))
         dataset = Dataset.from_pandas(pd.DataFrame({
             'text': X,
             'label': [self.idx_to_label.index(lbl_str) for lbl_str in y]}))
-
-        set_seed(SEED)
 
         tokenized_dataset = dataset.map(self._tokenize_function, batched=True)
 
