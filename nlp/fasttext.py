@@ -3,7 +3,6 @@ import fasttext
 import pandas as pd
 import numpy as np
 
-from config import SEED
 from nlp.classification_model import Model, PREDICT_PROBA_N
 from pathlib import Path
 
@@ -12,7 +11,8 @@ FASTTEXT_LABEL_PREFIX = '__label__'
 
 class FastText(Model):
 
-    def __init__(self):
+    def __init__(self, seed=None):
+        super(FastText, self).__init__(seed)
         self.model = None
 
     def train(self, X, y):
@@ -21,7 +21,7 @@ class FastText(Model):
         pd.DataFrame([y.apply(lambda lbl: FASTTEXT_LABEL_PREFIX+lbl), X]).T\
             .to_csv(tmp_file, sep='\t', header=False, index=False, quoting=csv.QUOTE_NONE, quotechar="", escapechar="")
         # thread 1 required for reproducible results -> https://fasttext.cc/docs/en/faqs.html
-        self.model = fasttext.train_supervised(tmp_file, seed=SEED, thread=1)
+        self.model = fasttext.train_supervised(tmp_file, seed=self.seed, thread=1)
 
     def is_trained(self):
         return self.model is not None

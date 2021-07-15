@@ -10,7 +10,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 import pandas as pd
 import json
 
-from nlp.classification_provider import ClassificationProvider
+from nlp.classification_provider import ClassificationProvider, ModelType
 
 app = Flask(__name__)
 
@@ -29,6 +29,15 @@ def train():
         type: file
         description: The file to upload.
       - in: formData
+        name: modelType
+        type: string
+        enum: [SVM, FASTTEXT, BERT]
+        description: Type of model to be trained
+      - in: formData
+        name: seed
+        type: integer
+        description: random seed required for reproducibility
+      - in: formData
         name: asynchronous
         type: boolean
         description: do not wait for training to complete
@@ -40,11 +49,19 @@ def train():
     """
     if 'file' not in request.files:
         return 'File upload required', 400
+
+    model_type = request.form.get('modelType')
+
+    if not ModelType.has_value(model_type):
+        return 'Please supply valid model type', 400
+
     df = pd.read_csv(request.files.get('file'))
     if df.shape[1] != 2 or len(set(df.columns) - {'target', 'text'}) > 0:
         return 'Supplied invalid header columns. Must be text, target', 400
 
-    model = ClassificationProvider().get_model()
+    seed = int(request.form.get('seed')) if request.form.get('seed') else None
+    model = ClassificationProvider().init_model(ModelType(model_type), seed)
+
     if json.loads(request.form.get('asynchronous', 'false')):
         model.train_async(df['text'], df['target'])
         return 'Training started', 200
@@ -82,10 +99,9 @@ def predict():
     data = request.get_json()
     if data is None or 'text' not in data:
         return 'Missing text in body', 400
-    model = ClassificationProvider().get_model()
-    if not model.is_trained():
+    if not ClassificationProvider().has_model():
         return 'Model not trained yet', 400
-    predicted_label = model.predict(data['text'])
+    predicted_label = ClassificationProvider().get_model().predict(data['text'])
     return jsonify({'label': predicted_label})
 
 
@@ -128,10 +144,9 @@ def predict_proba():
     data = request.get_json()
     if data is None or 'text' not in data:
         return 'Missing text in body', 400
-    model = ClassificationProvider().get_model()
-    if not model.is_trained():
+    if not ClassificationProvider().has_model():
         return 'Model not trained yet', 400
-    p_labels = model.predict_proba(data['text'], data.get('n'))
+    p_labels = ClassificationProvider().get_model().predict_proba(data['text'], data.get('n'))
     return jsonify([{'label': p[0], 'probability': p[1]} for p in p_labels])
 
 
@@ -151,10 +166,9 @@ def download_model():
               type: string
               format: binary
     """
-    model = ClassificationProvider().get_model()
-    if not model.is_trained():
+    if not ClassificationProvider().has_model():
         return 'Model not trained yet', 400
-    tmp_file_path = model.get_dumped_model_path()
+    tmp_file_path = ClassificationProvider().get_model().get_dumped_model_path()
     return send_file(tmp_file_path)
 
 
@@ -171,7 +185,9 @@ def get_training_status():
             isTrained:
               type: boolean
     """
-    return jsonify({'is_trained': ClassificationProvider().get_model().is_trained()})
+    is_trained = ClassificationProvider().has_model() and ClassificationProvider().get_model().is_trained()
+    return jsonify({'is_trained': is_trained})
+
 
 @app.route('/')
 def entry():

@@ -5,7 +5,6 @@ import numpy as np
 import torch
 import shutil
 
-from config import SEED
 from nlp.classification_model import Model, PREDICT_PROBA_N
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer, \
     EarlyStoppingCallback
@@ -16,15 +15,17 @@ BASE_MODEL = 'distilbert-base-uncased'
 USE_EARLY_STOPPING = False
 USE_DUMMY_BERT = True  # stops after a few epochs, used for tests
 
+
 class Bert(Model):
 
-    def __init__(self):
+    def __init__(self, seed=None):
+        super(Bert, self).__init__(seed)
         self.tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL)
         self.model = None
         self.idx_to_label = None  # list of target labels, according to trained class indices
         self.train_only_clf_layer = True  # don't retrain the whole model but only the clf layer at the end
         self.batch_size = 8
-        self.max_train_steps = 5  # only used if USE_DUMMY_BERT is True
+        self.max_train_steps = 1  # only used if USE_DUMMY_BERT is True
 
     def train(self, X, y):
 
@@ -41,7 +42,7 @@ class Bert(Model):
         tokenized_dataset = dataset.map(self._tokenize_function, batched=True)
 
         def model_init():
-            set_seed(SEED)  # from_pretrained seems to be flawed regarding seed usage
+            set_seed(self.seed)  # from_pretrained seems to be flawed regarding seed usage
             model = AutoModelForSequenceClassification.from_pretrained(
                 BASE_MODEL,
                 num_labels=len(self.idx_to_label))
@@ -49,7 +50,7 @@ class Bert(Model):
                 self._set_requires_grad(model, False)
             return model
 
-        training_args = TrainingArguments("test_trainer", seed=SEED, per_device_train_batch_size=self.batch_size,
+        training_args = TrainingArguments("test_trainer", seed=self.seed, per_device_train_batch_size=self.batch_size,
                                           logging_steps=1)
         if USE_EARLY_STOPPING:
             training_args.load_best_model_at_end = True
@@ -78,7 +79,7 @@ class Bert(Model):
         return self.model is not None
 
     def predict_proba(self, X, n=PREDICT_PROBA_N):
-        set_seed(SEED)
+        set_seed(self.seed)
         inputs = self.tokenizer(X, return_tensors="pt", padding="max_length", truncation=True)
         with torch.no_grad():
             logits = self.model(**inputs).logits.tolist()
@@ -90,6 +91,7 @@ class Bert(Model):
         tmp_folder = Path('bert_model')
         zip_file = Path('bert_model.zip')
         self.model.save_pretrained(str(tmp_folder))
+        self.tokenizer.save_pretrained(str(tmp_folder))
         shutil.make_archive(str(tmp_folder), 'zip', str(tmp_folder))
         return zip_file.resolve()
 

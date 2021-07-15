@@ -17,7 +17,7 @@ class ClassificationTest(unittest.TestCase):
 
     def test_train(self):
         with open('res/train.csv', 'rb') as f:
-            data = {'file': f}
+            data = {'file': f, 'modelType': 'SVM', 'seed': 213}
             response = self.app.post('/train', data=data, follow_redirects=True,
                                      content_type='multipart/form-data')
             self.assertEqual(200, response.status_code)

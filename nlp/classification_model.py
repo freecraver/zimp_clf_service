@@ -3,7 +3,13 @@ from threading import Thread
 
 PREDICT_PROBA_N=10
 
+
 class Model(ABC):
+
+    seed = None
+
+    def __init__(self, seed=None):
+        self.seed = seed
 
     @abstractmethod
     def train(self, X, y):

@@ -4,7 +4,6 @@ from joblib import dump
 
 from sklearn.svm import SVC
 
-from config import SEED
 from nlp.classification_model import Model, PREDICT_PROBA_N
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
@@ -12,11 +11,12 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 class SVM(Model):
 
-    def __init__(self):
+    def __init__(self, seed=None):
+        super(SVM, self).__init__(seed)
         self.text_clf = Pipeline([
             ('vect', CountVectorizer(lowercase=False)),
             ('tfidf', TfidfTransformer()),
-            ('clf', SVC(random_state=SEED))
+            ('clf', SVC(random_state=self.seed))
         ])
 
     def train(self, X, y):
@@ -42,9 +42,11 @@ class SVM(Model):
         decision value
         """
         dv = self.text_clf.decision_function([X])
-        ret_idx = (-1*dv).argsort()[:, :n]
-        return np.stack([self.text_clf.classes_[ret_idx], dv.flatten()[ret_idx]], axis=2)[0]
+        ps = self.softmax(dv)
+        ret_idx = (-1*ps).argsort()[:, :n]
+        return np.stack([self.text_clf.classes_[ret_idx], ps.flatten()[ret_idx]], axis=2)[0]
 
-
-
-
+    @staticmethod
+    def softmax(x):
+        e_x = np.exp(x - np.max(x))
+        return e_x / e_x.sum(axis=1)

@@ -2,7 +2,7 @@
 RESTful classification service used for experiments in the zimp pipeline
 
 ## Supported Models
-Configure desired model in `config.py`
+Pass desired model as parameter of the train POST-request
 * Sklearn SVM
 * FastText
 * Huggingface DistillBert

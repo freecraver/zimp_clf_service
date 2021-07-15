@@ -1,28 +1,51 @@
-from config import MODEL_TYPE
+from enum import Enum
+
 from nlp.bert import Bert
 from nlp.fasttext import FastText
 from nlp.svm import SVM
 
 
+class ModelType(Enum):
+    SVM = 'SVM'
+    FASTTEXT = 'FASTTEXT'
+    BERT = 'BERT'
+
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_
+
+
 class ClassificationProvider:
+
     __shared_state = None
 
     def __init__(self):
         if not ClassificationProvider.__shared_state:
             ClassificationProvider.__shared_state = self.__dict__
-            self.model = self._init_model()
+            self.model = None
         else:
             self.__dict__ = self.__shared_state
+
+    def init_model(self, model_type: ModelType, seed=None):
+        self.model = _init_model(model_type, seed)
+        return self.get_model()
 
     def get_model(self):
         return self.model
 
-    def _init_model(self):
-        if MODEL_TYPE == 'SVM':
-            return SVM()
-        elif MODEL_TYPE == 'FASTTEXT':
-            return FastText()
-        elif MODEL_TYPE == 'BERT':
-            return Bert()
+    def has_model(self):
+        return self.model is not None
 
-        raise EnvironmentError('No valid MODEL_TYPE configured')
+
+def _init_model(model_type: ModelType, seed=None):
+    if model_type == ModelType.SVM:
+        return SVM(seed)
+    elif model_type == ModelType.FASTTEXT:
+        return FastText(seed)
+    elif model_type == ModelType.BERT:
+        return Bert(seed)
+
+    raise EnvironmentError(f'model type {model_type} not supported')
+
+
+

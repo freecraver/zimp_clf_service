@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+.idea/
+*.bin
+*.zip
+*.train
+*.joblib
+tests/bert_model/
