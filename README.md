@@ -1,4 +1,4 @@
-# zimp_clf_service
+# zimp-clf-service
 RESTful classification service used for experiments in the zimp pipeline
 
 ## Supported Models
@@ -14,4 +14,10 @@ Pass desired model as parameter of the train POST-request
 
 ## API
 ![API Reference](doc/api_ref.png)
+
+## Docker Setup
+see https://hub.docker.com/repository/docker/freecraver/zimp-clf-service
+1. (optional) `docker build --tag zimp-clf-service .`
+2. or just `docker container run -p 5000:5000 freecraver/zimp-clf-service`
+3. Goto 127.0.0.1:5000 and check the api reference
 
