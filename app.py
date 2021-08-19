@@ -6,6 +6,7 @@ in a containerized env
 from flask import Flask, jsonify, request, send_file, redirect
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 import pandas as pd
 import json
@@ -13,6 +14,7 @@ import json
 from nlp.classification_provider import ClassificationProvider, ModelType
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 
 @app.route('/train', methods=['POST'])
@@ -196,15 +198,22 @@ def entry():
 
 @app.route("/spec")
 def spec():
+    base_path = request.headers.environ.get('HTTP_SWAGGER_PREFIX') # workaround for reverse-proxy
     swag = swagger(app)
     swag['info']['version'] = "1.0"
     swag['info']['title'] = "Text Classification Service"
+
+    # fix paths - probably also works with undocumented flask settings
+    if base_path:
+        endpoints = list(swag['paths'].keys())
+        for endpoint in endpoints:
+            swag['paths'][base_path + endpoint[1:]] = swag['paths'].pop(endpoint)
     return jsonify(swag)
 
 
 swaggerui_blueprint = get_swaggerui_blueprint(
     '/api/docs',
-    'http://127.0.0.1:5000/spec',
+    '/spec',
     config={
         'app_name': "Text Classification Service"
     }
