@@ -12,8 +12,8 @@ from transformers.trainer_utils import IntervalStrategy, set_seed
 from datasets import Dataset
 
 BASE_MODEL = 'distilbert-base-uncased'
-USE_EARLY_STOPPING = False
-USE_DUMMY_BERT = True  # stops after a few epochs, used for tests
+USE_EARLY_STOPPING = True
+USE_DUMMY_BERT = False  # stops after a few epochs, used for tests
 
 
 class Bert(Model):
@@ -83,9 +83,10 @@ class Bert(Model):
         inputs = self.tokenizer(X, return_tensors="pt", padding="max_length", truncation=True)
         with torch.no_grad():
             logits = self.model(**inputs).logits.tolist()
-        probs = self.softmax(logits)[0]
-        ret_idx = (-1*probs).argsort()[:n]
-        return np.stack([np.array(self.idx_to_label)[ret_idx], probs[ret_idx]], axis=1)
+        probs = self.softmax(logits)
+        ret_idx = (-1*probs).argsort()[:,:n]
+        ps_ret = probs[np.repeat(np.arange(len(probs)), n), ret_idx.flatten()].reshape(len(probs), n)
+        return np.stack([np.array(self.idx_to_label)[ret_idx], ps_ret], axis=2)
 
     def get_dumped_model_path(self):
         tmp_folder = Path('bert_model')
@@ -97,5 +98,5 @@ class Bert(Model):
 
     @staticmethod
     def softmax(x):
-        e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum(axis=1)
+        e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+        return e_x / np.sum(e_x, axis=1, keepdims=True)

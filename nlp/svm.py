@@ -32,7 +32,7 @@ class SVM(Model):
 
     def predict_proba(self, X, n=PREDICT_PROBA_N):
         """
-        note that SVM does not return probabilities, but outputs of the decision function,
+        note that SVM does not return probabilities, but softmaxed outputs of the decision function,
         this decision was made as the platt scaling for probability estimates works quite bad for small datasets
          https://scikit-learn.org/stable/modules/svm.html#scores-probabilities
         :param X: one input text
@@ -41,12 +41,13 @@ class SVM(Model):
         :return: iterable with entries of shape [class_label, decision_val], [str, float], sorted descending by
         decision value
         """
-        dv = self.text_clf.decision_function([X])
+        dv = self.text_clf.decision_function(X)
         ps = self.softmax(dv)
         ret_idx = (-1*ps).argsort()[:, :n]
-        return np.stack([self.text_clf.classes_[ret_idx], ps.flatten()[ret_idx]], axis=2)[0]
+        ps_ret = ps[np.repeat(np.arange(len(ps)),n),ret_idx.flatten()].reshape(len(ps), n)
+        return np.stack([self.text_clf.classes_[ret_idx], ps_ret], axis=2)
 
     @staticmethod
     def softmax(x):
-        e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum(axis=1)
+        e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+        return e_x / np.sum(e_x, axis=1, keepdims=True)

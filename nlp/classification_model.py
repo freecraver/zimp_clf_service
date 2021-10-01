@@ -35,10 +35,10 @@ class Model(ABC):
     def predict_proba(self, X, n=PREDICT_PROBA_N):
         """
         returns the prediction probabilities for the top n target labels with prediction probability > 0
-        :param X: one text example (str)
+        :param X: array of text examples [str]
         :param n: number of labels to return, in case less target labels were trained the number of returned labels
             might be smaller
-        :return: iterable with entries of shape [class_label, probability], [str, float], sorted descending by
+        :return: iterable of iterables with entries of shape [class_label, probability], [str, float], sorted descending by
         probability
         """
         raise NotImplementedError
@@ -54,10 +54,11 @@ class Model(ABC):
     def predict(self, X):
         """
         uses the trained model to predict the most likely class label
-        :param X: one text example (str)
-        :return: predicted class label (str)
+        :param X: array of text examples [str]
+        :return: array of predicted class labels [str]
         """
-        return self.predict_proba(X, 1)[0, 0]
+        res = self.predict_proba(X, 1)
+        return [p[0, 0] for p in res]
 
     def train_async(self, X, y):
         """

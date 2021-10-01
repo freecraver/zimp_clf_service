@@ -103,7 +103,7 @@ def predict():
         return 'Missing text in body', 400
     if not ClassificationProvider().has_model():
         return 'Model not trained yet', 400
-    predicted_label = ClassificationProvider().get_model().predict(data['text'])
+    predicted_label = ClassificationProvider().get_model().predict([data['text']])[0]
     return jsonify({'label': predicted_label})
 
 
@@ -148,9 +148,67 @@ def predict_proba():
         return 'Missing text in body', 400
     if not ClassificationProvider().has_model():
         return 'Model not trained yet', 400
-    p_labels = ClassificationProvider().get_model().predict_proba(data['text'], data.get('n'))
+    p_labels = ClassificationProvider().get_model().predict_proba([data['text']], data.get('n'))[0]
     return jsonify([{'label': p[0], 'probability': p[1]} for p in p_labels])
 
+
+@app.route("/m/predict_proba", methods=['POST'])
+def predict_proba_file():
+    """
+    Predict probabilities for top n class labels for all supplied texts. Requires a previous train-call
+    ---
+    parameters:
+      - in: body
+        name: body
+        schema:
+          required:
+            - texts
+            - n
+          properties:
+            texts:
+              type: array
+              items:
+                type: string
+            n:
+              type: integer
+    responses:
+      400:
+        description: Invalid Text or model not previously trained
+      200:
+        description: Descending sorted probabilities for class labels
+        schema:
+          required:
+            - results
+          properties:
+            results:
+              type: array
+              items:
+                type: object
+                properties:
+                  text:
+                    type: string
+                  labels:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                        probability:
+                          type: number
+    """
+    data = request.get_json()
+    if data is None or 'texts' not in data:
+        return 'Missing texts in body', 400
+    if not ClassificationProvider().has_model():
+        return 'Model not trained yet', 400
+    p_labels = ClassificationProvider().get_model().predict_proba(data['texts'], data.get('n'))
+    res = []
+    for text, labels in zip(data['texts'], p_labels):
+        text_labels = [{'label': p[0], 'probability': p[1]} for p in labels]
+        res.append({'text': text, 'labels': text_labels})
+
+    return jsonify(res)
 
 @app.route("/download")
 def download_model():

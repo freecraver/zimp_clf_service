@@ -27,9 +27,10 @@ class FastText(Model):
         return self.model is not None
 
     def predict_proba(self, X, n=PREDICT_PROBA_N):
-        lbls, ps = self.model.predict(X, k=n)
-        lbls = [lbl[len(FASTTEXT_LABEL_PREFIX):] for lbl in lbls]  # remove '__label__' prefix
-        return np.stack([lbls, ps], axis=1)
+        lbls_list, ps = self.model.predict(X, k=n)
+        for idx, lbls in enumerate(lbls_list):
+            lbls_list[idx] = [lbl[len(FASTTEXT_LABEL_PREFIX):] for lbl in lbls]  # remove '__label__' prefix
+        return np.stack([lbls_list, ps], axis=2)
 
     def get_dumped_model_path(self):
         tmp_file = Path('fasttext.bin')
