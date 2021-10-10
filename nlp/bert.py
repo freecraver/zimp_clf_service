@@ -12,7 +12,7 @@ from transformers.trainer_utils import IntervalStrategy, set_seed
 from datasets import Dataset
 
 BASE_MODEL = 'distilbert-base-uncased'
-USE_EARLY_STOPPING = True
+USE_EARLY_STOPPING = False
 USE_DUMMY_BERT = False  # stops after a few epochs, used for tests
 
 

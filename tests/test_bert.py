@@ -45,6 +45,7 @@ class ClassificationTest(unittest.TestCase):
         predictions = response.get_json()
         self.assertEqual(3, len(predictions))
         self.assertEqual('ENTY', predictions[0].get('label'))
+        self.assertTrue(predictions[0].get('probability') > 0.15)
 
     def test_predict_proba_multiple(self):
         self.test_train()
@@ -56,6 +57,7 @@ class ClassificationTest(unittest.TestCase):
         self.assertEqual(self.example_text, predictions[0]['text'])
         self.assertEqual('ENTY', predictions[0].get('labels')[0].get('label'))
         self.assertEqual('ENTY', predictions[1].get('labels')[0].get('label'))
+        self.assertTrue(predictions[0].get('labels')[0].get('probability') > 0.15)
 
     def test_download_model(self):
         self.test_train()
