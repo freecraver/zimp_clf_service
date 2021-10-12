@@ -246,7 +246,7 @@ def get_training_status():
               type: boolean
     """
     is_trained = ClassificationProvider().has_model() and ClassificationProvider().get_model().is_trained()
-    return jsonify({'is_trained': is_trained})
+    return jsonify({'isTrained': is_trained})
 
 
 @app.route('/')

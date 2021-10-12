@@ -8,7 +8,6 @@ from nlp.classification_model import Model, PREDICT_PROBA_N
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
-
 class SVM(Model):
 
     def __init__(self, seed=None):
@@ -23,7 +22,7 @@ class SVM(Model):
         self.text_clf.fit(X, y)
 
     def is_trained(self):
-        return hasattr(self.text_clf, 'classes_')
+        return hasattr(self.text_clf, 'classes_') and hasattr(self.text_clf.named_steps['clf'], 'shape_fit_')
 
     def get_dumped_model_path(self):
         tmp_file = Path('svm.joblib')
