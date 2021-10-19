@@ -15,6 +15,7 @@ class ModelType(Enum):
         return value in cls._value2member_map_
 
 
+# only works with single worker -> transfer trained model to key value store or object storage for scalability
 class ClassificationProvider:
 
     __shared_state = None

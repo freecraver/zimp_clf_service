@@ -9,7 +9,7 @@ Pass desired model as parameter of the train POST-request
 
 ## Startup
 1. `pip install -r requirements.txt`
-2. `python -m flask run`
+2. `$env:FLASK_APP = 'wsgi.py'; python -m flask run` or `gunicorn --bind 0.0.0.0:5000 wsgi:app`
 3. Goto 127.0.0.1:5000 and check the api reference
 
 ## API
