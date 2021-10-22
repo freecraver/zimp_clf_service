@@ -1,10 +1,11 @@
-from pathlib import Path
-
+import logging
+import transformers
 import pandas as pd
 import numpy as np
 import torch
 import shutil
 
+from pathlib import Path
 from nlp.classification_model import Model, PREDICT_PROBA_N
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer, \
     EarlyStoppingCallback
@@ -60,6 +61,7 @@ class Bert(Model):
             training_args.max_steps = self.max_train_steps
 
         trainer = Trainer(model_init=model_init, args=training_args, train_dataset=tokenized_dataset)
+        trainer.add_callback(LoggerLogCallback())
 
         if USE_EARLY_STOPPING:
             trainer.add_callback(EarlyStoppingCallback())
@@ -100,3 +102,11 @@ class Bert(Model):
     def softmax(x):
         e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
         return e_x / np.sum(e_x, axis=1, keepdims=True)
+
+
+class LoggerLogCallback(transformers.TrainerCallback):
+    def on_log(self, args, state, control, logs=None, **kwargs):
+        control.should_log = False
+        _ = logs.pop("total_flos", None)
+        if state.is_local_process_zero:
+            logging.info(logs) # using your custom logger

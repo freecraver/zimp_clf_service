@@ -3,6 +3,7 @@ This is very lightweight classification service used for training and evaluating
 in a containerized env
 """
 
+import logging
 from flask import Flask, jsonify, request, send_file, redirect
 from flask_swagger import swagger
 from flask_swagger_ui import get_swaggerui_blueprint
@@ -12,6 +13,11 @@ import pandas as pd
 import json
 
 from nlp.classification_provider import ClassificationProvider, ModelType
+
+logging.basicConfig(level=logging.DEBUG, handlers=[
+        logging.FileHandler("output.log"),
+        logging.StreamHandler()
+    ])
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
