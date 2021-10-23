@@ -11,6 +11,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD ["gunicorn", "wsgi:app", "-w", "1", "--threads", "1", "-b", "0.0.0.0:5000"]
+CMD ["gunicorn", "wsgi:app", "-w", "1", "--threads", "1", "--timeout", "0", "-b", "0.0.0.0:5000"]
 
 #CMD [ "python", "-m" , "flask", "run", "--host=0.0.0.0"]
