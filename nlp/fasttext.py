@@ -2,6 +2,7 @@ import csv
 import fasttext
 import pandas as pd
 import numpy as np
+import re
 
 from nlp.classification_model import Model, PREDICT_PROBA_N
 from pathlib import Path
@@ -18,7 +19,8 @@ class FastText(Model):
     def train(self, X, y):
         # fasttext library requires a file as input; labels are identified by the '__label__' prefix
         tmp_file = 'fasttext.train'
-        pd.DataFrame([y.apply(lambda lbl: FASTTEXT_LABEL_PREFIX+lbl), X]).T\
+        X = X.apply(lambda txt: re.sub(r'\W', ' ', txt))  # remove all non-text chars which fasttext won't use
+        pd.DataFrame([y.apply(lambda lbl: FASTTEXT_LABEL_PREFIX+str(lbl)), X]).T\
             .to_csv(tmp_file, sep='\t', header=False, index=False, quoting=csv.QUOTE_NONE, quotechar="", escapechar="")
         # thread 1 required for reproducible results -> https://fasttext.cc/docs/en/faqs.html
         self.model = fasttext.train_supervised(tmp_file, seed=self.seed, thread=1)

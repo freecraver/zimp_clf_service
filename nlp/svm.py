@@ -1,3 +1,5 @@
+import logging
+import math
 import numpy as np
 from pathlib import Path
 from joblib import dump
@@ -8,6 +10,7 @@ from nlp.classification_model import Model, PREDICT_PROBA_N
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
+
 class SVM(Model):
 
     def __init__(self, seed=None):
@@ -15,10 +18,13 @@ class SVM(Model):
         self.text_clf = Pipeline([
             ('vect', CountVectorizer(lowercase=False)),
             ('tfidf', TfidfTransformer()),
-            ('clf', SVC(random_state=self.seed))
-        ])
+            ('clf', SVC(random_state=self.seed, verbose=True))
+        ], verbose=True)
 
     def train(self, X, y):
+        max_iter = max(100, math.floor(math.pow(10, 8)/len(X)))  # set max_iter to 10^8/n
+        logging.debug(f'Starting with training (max_iter={max_iter})')
+        self.text_clf.set_params(clf__max_iter=max_iter)
         self.text_clf.fit(X, y)
 
     def is_trained(self):
