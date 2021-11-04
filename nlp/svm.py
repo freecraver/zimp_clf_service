@@ -22,10 +22,10 @@ class SVM(Model):
         ], verbose=True)
 
     def train(self, X, y):
-        max_iter = max(100, math.floor(math.pow(10, 8)/len(X)))  # set max_iter to 10^8/n
+        max_iter = max(100, math.floor(math.pow(10, 9)/len(X)))  # set max_iter to 10^9/n
         logging.debug(f'Starting with training (max_iter={max_iter})')
         self.text_clf.set_params(clf__max_iter=max_iter)
-        self.text_clf.fit(X, y)
+        self.text_clf.fit(X, y.astype(str))
 
     def is_trained(self):
         return hasattr(self.text_clf, 'classes_') and hasattr(self.text_clf.named_steps['clf'], 'shape_fit_')
