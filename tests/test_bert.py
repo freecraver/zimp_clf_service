@@ -4,11 +4,7 @@ import shutil
 import tempfile
 import unittest
 
-import numpy as np
-import torch
-from fasttext import load_model
-from joblib import load
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, set_seed
+from transformers import set_seed, TFDistilBertForSequenceClassification, DistilBertTokenizerFast
 
 from app import app
 from nlp.bert import Bert, USE_DUMMY_BERT
@@ -68,16 +64,15 @@ class ClassificationTest(unittest.TestCase):
             with open(f_name, 'wb') as fh:
                 fh.write(response.data)
             shutil.unpack_archive(f_name, td)
-            tokenizer = AutoTokenizer.from_pretrained(td)
-            pipeline = AutoModelForSequenceClassification.from_pretrained(td)
+            tokenizer = DistilBertTokenizerFast.from_pretrained(td)
+            pipeline = TFDistilBertForSequenceClassification.from_pretrained(td)
             self.assertIsNotNone(pipeline)
-            inputs = tokenizer(self.example_text, return_tensors="pt", padding="max_length", truncation=True)
+            inputs = tokenizer(self.example_text, return_tensors="tf", padding=True, truncation=True)
             set_seed(23)
-            with torch.no_grad():
-                logits = pipeline(**inputs).logits.tolist()
+            logits = pipeline(**inputs).logits.numpy()
             probs = Bert.softmax(logits)[0]
             ret_idx = (-1 * probs).argsort()[0]
-            self.assertEqual(2, ret_idx)
+            self.assertEqual(3, ret_idx)
 
 
 if __name__ == '__main__':
