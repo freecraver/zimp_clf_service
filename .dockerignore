@@ -1,5 +1,8 @@
 venv
 tests
+doc
+.github
 *.bin
 *.train
 *.zip
+*.log
