@@ -29,6 +29,7 @@ class FastText(Model):
         return self.model is not None
 
     def predict_proba(self, X, n=PREDICT_PROBA_N):
+        X = [re.sub(r'\W', ' ', txt) for txt in X]  # remove all non-text chars which fasttext won't use
         lbls_list, ps = self.model.predict(X, k=n)
         for idx, lbls in enumerate(lbls_list):
             lbls_list[idx] = [lbl[len(FASTTEXT_LABEL_PREFIX):] for lbl in lbls]  # remove '__label__' prefix
