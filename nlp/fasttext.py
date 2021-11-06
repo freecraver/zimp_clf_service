@@ -6,6 +6,7 @@ import re
 
 from nlp.classification_model import Model, PREDICT_PROBA_N
 from pathlib import Path
+from sklearn.utils import shuffle
 
 FASTTEXT_LABEL_PREFIX = '__label__'
 
@@ -17,6 +18,9 @@ class FastText(Model):
         self.model = None
 
     def train(self, X, y):
+        # first shuffle data as fasttext uses SGD (https://github.com/facebookresearch/fastText/issues/74)
+        X, y = shuffle(X, y, random_state=self.seed)
+
         # fasttext library requires a file as input; labels are identified by the '__label__' prefix
         tmp_file = 'fasttext.train'
         X = X.apply(lambda txt: re.sub(r'\W', ' ', txt))  # remove all non-text chars which fasttext won't use

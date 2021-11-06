@@ -4,12 +4,15 @@ import shutil
 import transformers
 
 from pathlib import Path
+
+from sklearn.utils import shuffle
+
 from nlp.classification_model import Model, PREDICT_PROBA_N
 from transformers import DistilBertTokenizerFast, TFDistilBertForSequenceClassification, TFTrainingArguments, TFTrainer
 from transformers.trainer_utils import set_seed
 
 BASE_MODEL = 'distilbert-base-uncased'
-USE_DUMMY_BERT = False  # stops after a few training steps, used for tests
+USE_DUMMY_BERT = True  # stops after a few training steps, used for tests
 
 
 class Bert(Model):
@@ -25,6 +28,7 @@ class Bert(Model):
         self.max_train_steps = 1  # only used if USE_DUMMY_BERT is True
 
     def train(self, X, y):
+        X, y = shuffle(X, y, random_state=self.seed)
 
         if USE_DUMMY_BERT:
             # reduce size of training set to reduce number of batches
