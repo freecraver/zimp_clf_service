@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import shutil
+import transformers
 
 from pathlib import Path
 from nlp.classification_model import Model, PREDICT_PROBA_N
@@ -15,6 +16,7 @@ class Bert(Model):
 
     def __init__(self, seed=None):
         super(Bert, self).__init__(seed)
+        transformers.logging.set_verbosity_info()
         self.tokenizer = DistilBertTokenizerFast.from_pretrained(BASE_MODEL)
         self.model = None
         self.idx_to_label = None  # list of target labels, according to trained class indices
@@ -38,7 +40,7 @@ class Bert(Model):
         ))
 
         training_args = TFTrainingArguments("test_trainer", seed=self.seed, per_device_train_batch_size=self.batch_size,
-                                            logging_steps=1)
+                                            logging_steps=1, num_train_epochs=1)
         if USE_DUMMY_BERT:
             training_args.max_steps = self.max_train_steps
 
