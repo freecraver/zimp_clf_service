@@ -12,7 +12,7 @@ from transformers import DistilBertTokenizerFast, TFDistilBertForSequenceClassif
 from transformers.trainer_utils import set_seed
 
 BASE_MODEL = 'distilbert-base-uncased'
-USE_DUMMY_BERT = True  # stops after a few training steps, used for tests
+USE_DUMMY_BERT = False  # stops after a few training steps, used for tests
 
 
 class Bert(Model):
