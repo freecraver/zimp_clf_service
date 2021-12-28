@@ -18,6 +18,7 @@ fasttext==0.9.2
 transformers==4.6.1
 datasets==1.8.0
 tensorflow==2.6.0
+keras==2.6.0
 # bert (with pytorch - potentially broken & slow)
 # torch==1.8.1
 # bert (with gpu)

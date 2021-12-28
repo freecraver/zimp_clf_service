@@ -89,6 +89,9 @@ class Bert(Model):
         shutil.make_archive(str(tmp_folder), 'zip', str(tmp_folder))
         return zip_file.resolve()
 
+    def get_prediction_batch_size(self) -> int:
+        return 6
+
     @staticmethod
     def softmax(x):
         e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
