@@ -72,7 +72,7 @@ class Model(ABC):
         file_name = f"results_{result_id}.csv"
 
         with open(file_name, 'w') as f:
-            f.write('text, prediction, certainty\n')
+            f.write('text,prediction,certainty\n')
 
         text_cnt = len(texts)
 
