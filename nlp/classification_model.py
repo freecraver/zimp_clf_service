@@ -71,7 +71,7 @@ class Model(ABC):
         batch_size = self.get_prediction_batch_size()
         file_name = f"results_{result_id}.csv"
 
-        with open(file_name, 'w') as f:
+        with open(file_name, 'w', encoding='utf-8') as f:
             f.write('text,prediction,certainty\n')
 
         text_cnt = len(texts)
@@ -85,7 +85,7 @@ class Model(ABC):
 
     @staticmethod
     def _append_to_prediction_file(texts, prediction_tuples, file_name):
-        with open(file_name, "a", newline="") as f:
+        with open(file_name, "a", newline="", encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=['text', 'prediction', 'certainty'])
             for text, pred in zip(texts, prediction_tuples):
                 top_pred = pred[0]

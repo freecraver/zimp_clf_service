@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+import os
 import shutil
 import transformers
 
@@ -24,7 +25,7 @@ class Bert(Model):
         self.model = None
         self.idx_to_label = None  # list of target labels, according to trained class indices
         self.train_only_clf_layer = True  # don't retrain the whole model but only the clf layer at the end
-        self.batch_size = 8
+        self.batch_size = 4
         self.max_train_steps = 1  # only used if USE_DUMMY_BERT is True
 
     def train(self, X, y):
@@ -43,8 +44,13 @@ class Bert(Model):
             train_labels
         ))
 
-        training_args = TFTrainingArguments("test_trainer", seed=self.seed, per_device_train_batch_size=self.batch_size,
-                                            logging_steps=1, num_train_epochs=1)
+        max_steps = min(10000, 3*len(X))
+
+        model_path = 'test_trainer'
+        if os.path.exists(model_path):
+            shutil.rmtree(model_path)  # huggingface overwrite dir does not work as specified, perform hard delete
+        training_args = TFTrainingArguments(model_path, seed=self.seed, per_device_train_batch_size=self.batch_size,
+                                            logging_steps=100, max_steps=max_steps)
         if USE_DUMMY_BERT:
             training_args.max_steps = self.max_train_steps
 

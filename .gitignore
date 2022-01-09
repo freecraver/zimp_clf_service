@@ -134,3 +134,5 @@ dmypy.json
 *.joblib
 tests/bert_model/
 runs/
+test_trainer/
+bert_model/

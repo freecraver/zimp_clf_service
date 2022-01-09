@@ -265,7 +265,7 @@ def predict_proba_async():
     if not ClassificationProvider().has_model():
         return 'Model not trained yet', 400
     result_id = uuid.uuid4().hex
-    ClassificationProvider().get_model().predict_file(df['text'], result_id)
+    ClassificationProvider().get_model().predict_file(df['text'].to_list(), result_id)
     return jsonify({'resultId': result_id})
 
 

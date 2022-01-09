@@ -1,8 +1,10 @@
 venv
 tests
 doc
+runs
 .github
 *.bin
 *.train
 *.zip
 *.log
+*.csv
