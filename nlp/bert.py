@@ -85,7 +85,7 @@ class Bert(Model):
         probs = self.softmax(logits)
         ret_idx = (-1 * probs).argsort()[:, :n]
         ps_ret = probs[np.repeat(np.arange(len(probs)), n), ret_idx.flatten()].reshape(len(probs), n)
-        return np.stack([np.array(self.idx_to_label)[ret_idx], ps_ret], axis=2)
+        return np.stack([np.array(self.idx_to_label, dtype=np.str)[ret_idx], ps_ret], axis=2)
 
     def get_dumped_model_path(self):
         tmp_folder = Path('bert_model')
