@@ -1,8 +1,9 @@
-FROM python:3.6-slim-buster
+FROM nvidia/cuda:11.5.0-cudnn8-runtime-ubuntu20.04
 
 RUN apt-get update \
 && apt-get install build-essential -y \
-&& apt-get clean
+&& apt-get install python3 python3-pip -y \
+ && apt-get clean
 
 WORKDIR /app
 
