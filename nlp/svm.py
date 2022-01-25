@@ -11,12 +11,20 @@ from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 
+ENABLE_PRE_PROCESSING = False
+
+
 class SVM(Model):
 
     def __init__(self, seed=None):
         super(SVM, self).__init__(seed)
+
+        vectorizer = CountVectorizer(lowercase=False)
+        if not ENABLE_PRE_PROCESSING:
+            vectorizer.tokenizer = lambda x: x.split()
+
         self.text_clf = Pipeline([
-            ('vect', CountVectorizer(lowercase=False)),
+            ('vect', vectorizer),
             ('tfidf', TfidfTransformer()),
             ('clf', SVC(random_state=self.seed, verbose=True))
         ], verbose=True)

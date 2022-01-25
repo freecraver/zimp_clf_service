@@ -9,7 +9,7 @@ from pathlib import Path
 from sklearn.utils import shuffle
 
 FASTTEXT_LABEL_PREFIX = '__label__'
-
+ENABLE_PRE_PROCESSING = False
 
 class FastText(Model):
 
@@ -23,7 +23,8 @@ class FastText(Model):
 
         # fasttext library requires a file as input; labels are identified by the '__label__' prefix
         tmp_file = 'fasttext.train'
-        X = X.apply(lambda txt: re.sub(r'\W', ' ', txt))  # remove all non-text chars which fasttext won't use
+        if ENABLE_PRE_PROCESSING:
+            X = X.apply(lambda txt: re.sub(r'\W', ' ', txt))  # remove all non-text chars
         pd.DataFrame([y.apply(lambda lbl: FASTTEXT_LABEL_PREFIX+str(lbl)), X]).T\
             .to_csv(tmp_file, sep='\t', header=False, index=False, quoting=csv.QUOTE_NONE, quotechar="", escapechar="")
         # thread 1 required for reproducible results -> https://fasttext.cc/docs/en/faqs.html
