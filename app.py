@@ -44,7 +44,7 @@ def train():
       - in: formData
         name: modelType
         type: string
-        enum: [SVM, FASTTEXT, BERT]
+        enum: [SVM, FASTTEXT, BERT, GERMAN_BERT]
         description: Type of model to be trained
       - in: formData
         name: seed

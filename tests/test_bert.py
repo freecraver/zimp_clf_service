@@ -72,7 +72,7 @@ class ClassificationTest(unittest.TestCase):
             logits = pipeline(**inputs).logits.numpy()
             probs = Bert.softmax(logits)[0]
             ret_idx = (-1 * probs).argsort()[0]
-            self.assertEqual(3, ret_idx)
+            self.assertEqual(2, ret_idx)
 
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@ from enum import Enum
 
 from nlp.bert import Bert
 from nlp.fasttext import FastText
+from nlp.german_bert import GermanBert
 from nlp.svm import SVM
 
 
@@ -9,6 +10,7 @@ class ModelType(Enum):
     SVM = 'SVM'
     FASTTEXT = 'FASTTEXT'
     BERT = 'BERT'
+    GERMAN_BERT = 'GERMAN_BERT'
 
     @classmethod
     def has_value(cls, value):
@@ -45,6 +47,8 @@ def _init_model(model_type: ModelType, seed=None):
         return FastText(seed)
     elif model_type == ModelType.BERT:
         return Bert(seed)
+    elif model_type == ModelType.GERMAN_BERT:
+        return GermanBert(seed)
 
     raise EnvironmentError(f'model type {model_type} not supported')
 
