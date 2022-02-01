@@ -55,6 +55,12 @@ class SVM(Model):
         decision value
         """
         dv = self.text_clf.decision_function(X)
+
+        if self.text_clf.classes_.size == 2:
+            # SVM with two classes has a decision function which returns a scalar value (threshold at 0)
+            # map to multi-class decision values
+            dv = np.stack([0 - dv, dv], axis=1)
+
         ps = self.softmax(dv)
         ret_idx = (-1*ps).argsort()[:, :n]
         ps_ret = ps[np.repeat(np.arange(len(ps)),n),ret_idx.flatten()].reshape(len(ps), n)
