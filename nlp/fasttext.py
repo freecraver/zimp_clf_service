@@ -25,6 +25,9 @@ class FastText(Model):
         tmp_file = 'fasttext.train'
         if ENABLE_PRE_PROCESSING:
             X = X.apply(lambda txt: re.sub(r'\W', ' ', txt))  # remove all non-text chars
+        else:
+            # tabs must be removed, otherwise training fails
+            X = X.apply(lambda txt: txt.replace('\t', ' '))
         pd.DataFrame([y.apply(lambda lbl: FASTTEXT_LABEL_PREFIX+str(lbl)), X]).T\
             .to_csv(tmp_file, sep='\t', header=False, index=False, quoting=csv.QUOTE_NONE, quotechar="", escapechar="")
         # thread 1 required for reproducible results -> https://fasttext.cc/docs/en/faqs.html
