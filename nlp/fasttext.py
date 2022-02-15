@@ -25,11 +25,8 @@ class FastText(Model):
 
         # fasttext library requires a file as input; labels are identified by the '__label__' prefix
         tmp_file = 'fasttext.train'
-        if ENABLE_PRE_PROCESSING:
-            X = X.apply(lambda txt: re.sub(r'\W', ' ', txt))  # remove all non-text chars
-        else:
-            # tabs must be removed, otherwise training fails
-            X = X.apply(lambda txt: txt.replace('\t', ' '))
+        X = self.pre_process_text(X)
+
         pd.DataFrame([y.apply(lambda lbl: FASTTEXT_LABEL_PREFIX+str(lbl)), X]).T\
             .to_csv(tmp_file, sep='\t', header=False, index=False, quoting=csv.QUOTE_NONE, quotechar="", escapechar="")
         # thread 1 required for reproducible results -> https://fasttext.cc/docs/en/faqs.html
@@ -39,8 +36,16 @@ class FastText(Model):
     def is_trained(self):
         return self.model is not None
 
+    @staticmethod
+    def pre_process_text(X):
+        if ENABLE_PRE_PROCESSING:
+            return X.apply(lambda txt: re.sub(r'\W', ' ', txt))  # remove all non-text chars
+        else:
+            # tabs must be removed, otherwise training fails
+            return X.apply(lambda txt: txt.replace('\t', ' '))
+
     def predict_proba(self, X, n=PREDICT_PROBA_N):
-        X = [re.sub(r'\W', ' ', txt) for txt in X]  # remove all non-text chars which fasttext won't use
+        X = self.pre_process_text(pd.Series(X)).to_list() # remove all non-text chars which fasttext won't use
         lbls_list, ps = self.model.predict(X, k=n)
         for idx, lbls in enumerate(lbls_list):
             lbls_list[idx] = [lbl[len(FASTTEXT_LABEL_PREFIX):] for lbl in lbls]  # remove '__label__' prefix
