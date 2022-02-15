@@ -25,6 +25,7 @@ class BaseCountVectorizerModel(Model, ABC):
             ('tfidf', TfidfTransformer()),
             ('clf', self._init_classifier(**kwargs))
         ], verbose=True)
+        self._is_trained = False
 
     @abstractmethod
     def _init_classifier(self, **kwargs):
@@ -44,12 +45,14 @@ class BaseCountVectorizerModel(Model, ABC):
         pass
 
     def train(self, X, y):
+        self._is_trained = False
         self._pre_train(X, y)
         logging.debug('Starting with training')
         self.text_clf.fit(X, y.astype(str))
+        self._is_trained = True
 
     def is_trained(self):
-        return hasattr(self.text_clf, 'classes_')
+        return self._is_trained and hasattr(self.text_clf, 'classes_')
 
     def predict_proba(self, X, n=PREDICT_PROBA_N):
         ps = self.text_clf.predict_proba(X)

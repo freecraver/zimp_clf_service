@@ -21,4 +21,12 @@ class RandomForest(BaseCountVectorizerModel):
             **kwargs)
 
     def is_trained(self):
-        return super().is_trained() and hasattr(self.text_clf.named_steps['clf'], 'estimators_')
+        """
+        random forest is done when all required attributes are created and the correct nr of estimators was created
+        """
+        if not super().is_trained():
+            return False
+        forest = self.text_clf.named_steps['clf']
+        if not hasattr(forest, 'estimators_'):
+            return False
+        return len(forest.estimators_) >= forest.n_estimators
