@@ -13,12 +13,12 @@ from transformers import DistilBertTokenizerFast, TFDistilBertForSequenceClassif
 from transformers.trainer_utils import set_seed
 
 BASE_MODEL = 'distilbert-base-uncased'
-USE_DUMMY_BERT = False  # stops after a few training steps, used for tests
+USE_DUMMY_BERT = True  # stops after a few training steps, used for tests
 
 
 class Bert(Model):
 
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, **kwargs):
         super(Bert, self).__init__(seed)
         transformers.logging.set_verbosity_info()
         self.model = None
@@ -26,6 +26,7 @@ class Bert(Model):
         self.train_only_clf_layer = True  # don't retrain the whole model but only the clf layer at the end
         self.batch_size = 4
         self.tokenizer = self.init_tokenizer()
+        self.kwargs = kwargs
 
     def get_base_model(self):
         return BASE_MODEL
@@ -38,7 +39,8 @@ class Bert(Model):
             set_seed(self.seed)
             model = TFDistilBertForSequenceClassification.from_pretrained(
                 self.get_base_model(),
-                num_labels=len(self.idx_to_label)
+                num_labels=len(self.idx_to_label),
+                **self.kwargs
             )
 
         if self.train_only_clf_layer:
@@ -104,9 +106,7 @@ class Bert(Model):
         set_seed(self.seed)
         logits = self.predict_logits(X)
         probs = self.softmax(logits)
-        ret_idx = (-1 * probs).argsort()[:, :n]
-        ps_ret = probs[np.repeat(np.arange(len(probs)), n), ret_idx.flatten()].reshape(len(probs), n)
-        return np.stack([np.array(self.idx_to_label, dtype=np.str)[ret_idx], ps_ret], axis=2)
+        return self.transform_prediction_output(probs, n, np.array(self.idx_to_label, dtype=np.str))
 
     def get_dumped_model_path(self):
         tmp_folder = Path('bert_model')
@@ -118,8 +118,3 @@ class Bert(Model):
 
     def get_prediction_batch_size(self) -> int:
         return 6
-
-    @staticmethod
-    def softmax(x):
-        e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
-        return e_x / np.sum(e_x, axis=1, keepdims=True)

@@ -2,6 +2,9 @@ import csv
 import logging
 from abc import ABC, abstractmethod
 from threading import Thread
+from typing import List
+
+import numpy as np
 
 PREDICT_PROBA_N = 10
 
@@ -110,3 +113,24 @@ class Model(ABC):
         :return: nothing
         """
         Thread(target=self.train, args=(X, y)).start()
+
+    @staticmethod
+    def transform_prediction_output(ps: np.array, n: int, class_labels: np.array):
+        """
+        transform model prediction to expected classifier format
+        :param ps: 2D-array of class-label probabilities (or estimates) [num_texts x num_class_labels]
+        :param n: number of top results to be returned per prediction, interval of [1, num_class_labels]
+        :param class_labels: array of class labels in the order of self.predict_proba indices
+        :return: 3D array with entries of shape [num_texts, n, 2], whereas third dim is of form
+         (class_label, probability), i.e. [str, float], sorted descending by probability
+        """
+        ret_idx = (-1 * ps).argsort()[:, :n]  # identify top n indices per example
+        # extract top n probability values in descending order at reshape to  [num_texts x num_class_labels]
+        ps_ret = ps[np.repeat(np.arange(len(ps)), n), ret_idx.flatten()].reshape(len(ps), n)
+        # join class labels with probability values accross third dimension
+        return np.stack([class_labels[ret_idx], ps_ret], axis=2)
+
+    @staticmethod
+    def softmax(x):
+        e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+        return e_x / np.sum(e_x, axis=1, keepdims=True)

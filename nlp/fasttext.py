@@ -11,11 +11,13 @@ from sklearn.utils import shuffle
 FASTTEXT_LABEL_PREFIX = '__label__'
 ENABLE_PRE_PROCESSING = False
 
+
 class FastText(Model):
 
-    def __init__(self, seed=None):
+    def __init__(self, seed=None, **kwargs):
         super(FastText, self).__init__(seed)
         self.model = None
+        self.kwargs = kwargs
 
     def train(self, X, y):
         # first shuffle data as fasttext uses SGD (https://github.com/facebookresearch/fastText/issues/74)
@@ -31,7 +33,8 @@ class FastText(Model):
         pd.DataFrame([y.apply(lambda lbl: FASTTEXT_LABEL_PREFIX+str(lbl)), X]).T\
             .to_csv(tmp_file, sep='\t', header=False, index=False, quoting=csv.QUOTE_NONE, quotechar="", escapechar="")
         # thread 1 required for reproducible results -> https://fasttext.cc/docs/en/faqs.html
-        self.model = fasttext.train_supervised(tmp_file, seed=self.seed, thread=1)
+        # for some models a higher learning rate will be required
+        self.model = fasttext.train_supervised(tmp_file, seed=self.seed, thread=1, **self.kwargs)
 
     def is_trained(self):
         return self.model is not None

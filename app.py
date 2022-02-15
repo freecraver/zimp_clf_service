@@ -44,7 +44,7 @@ def train():
       - in: formData
         name: modelType
         type: string
-        enum: [SVM, FASTTEXT, BERT, GERMAN_BERT]
+        enum: [SVM, FASTTEXT, BERT, GERMAN_BERT, DECISION_TREE, RANDOM_FOREST]
         description: Type of model to be trained
       - in: formData
         name: seed
@@ -54,6 +54,10 @@ def train():
         name: asynchronous
         type: boolean
         description: do not wait for training to complete
+      - in: formData
+        name: modelParameters
+        type: object
+        description: Classifier-specific parameters used for training
     responses:
       400:
         description: Required file missing or having invalid format
@@ -73,7 +77,8 @@ def train():
         return 'Supplied invalid header columns. Must be text, target', 400
 
     seed = int(request.form.get('seed')) if request.form.get('seed') else None
-    model = ClassificationProvider().init_model(ModelType(model_type), seed)
+    clf_args = json.loads(request.form.get('modelParameters') or "{}")
+    model = ClassificationProvider().init_model(ModelType(model_type), seed, **clf_args)
 
     if json.loads(request.form.get('asynchronous', 'false')):
         model.train_async(df['text'], df['target'])

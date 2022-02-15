@@ -22,7 +22,8 @@ class GermanBert(Bert):
             set_seed(self.seed)
             model = AutoModelForSequenceClassification.from_pretrained(
                 self.get_base_model(),
-                num_labels=len(self.idx_to_label)
+                num_labels=len(self.idx_to_label),
+                **self.kwargs
             )
             if self.train_only_clf_layer:
                 self._set_requires_grad(model, False)
