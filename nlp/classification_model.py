@@ -2,7 +2,7 @@ import csv
 import logging
 from abc import ABC, abstractmethod
 from threading import Thread
-from typing import List
+from pathlib import Path
 
 import numpy as np
 
@@ -73,6 +73,10 @@ class Model(ABC):
     def _predict_file_sync(self, texts, result_id):
         batch_size = self.get_prediction_batch_size()
         file_name = f"results_{result_id}.csv"
+
+        # delete any previous prediction files
+        for p in Path('.').glob('results_*.csv'):
+            p.unlink()
 
         with open(file_name, 'w', encoding='utf-8') as f:
             f.write('text,prediction,certainty\n')
