@@ -30,6 +30,9 @@ class GermanBert(Bert):
             return model
         return f_model_init
 
+    def get_max_steps(self, cnt_train_records):
+        return min(60000, int(cnt_train_records * 50 / self.batch_size))
+
     def init_dataset(self, X, y):
         dataset = Dataset.from_pandas(pd.DataFrame({
             'text': X,
