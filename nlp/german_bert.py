@@ -50,8 +50,13 @@ class GermanBert(Bert):
 
     def predict_logits(self, X):
         inputs = self.tokenizer(X, return_tensors="pt", padding="max_length", truncation=True)
+        if not USE_DUMMY_BERT:
+            inputs = inputs.to('cuda')
         with torch.no_grad():
-            return self.model(**inputs).logits.numpy()
+            logits = self.model(**inputs).logits
+            if not USE_DUMMY_BERT:
+                logits = logits.to('cpu')
+            return logits.numpy()
 
     def _tokenize_function(self, examples):
         return self.tokenizer(examples["text"], padding="max_length", truncation=True)
