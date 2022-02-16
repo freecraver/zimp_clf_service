@@ -62,3 +62,7 @@ class BaseCountVectorizerModel(Model, ABC):
         tmp_file = Path('sklearn.joblib')
         dump(self.text_clf, tmp_file)
         return tmp_file.resolve()
+
+    def get_prediction_batch_size(self) -> int:
+        return 1028
+

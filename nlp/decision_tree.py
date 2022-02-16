@@ -17,7 +17,6 @@ class RandomForest(BaseCountVectorizerModel):
         return RandomForestClassifier(
             random_state=self.seed,
             min_samples_leaf=.01,
-            verbose=True,
             **kwargs)
 
     def is_trained(self):
