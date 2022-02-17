@@ -42,7 +42,7 @@ class FastText(Model):
             return X.apply(lambda txt: re.sub(r'\W', ' ', txt))  # remove all non-text chars
         else:
             # tabs must be removed, otherwise training fails
-            return X.apply(lambda txt: txt.replace('\t', ' '))
+            return X.apply(lambda txt: txt.replace('\t', ' ').replace('\n', ' '))
 
     def predict_proba(self, X, n=PREDICT_PROBA_N):
         X = self.pre_process_text(pd.Series(X)).to_list() # remove all non-text chars which fasttext won't use

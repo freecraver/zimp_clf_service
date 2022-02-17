@@ -4,12 +4,15 @@ RESTful classification service used for experiments in the zimp pipeline
 ## Supported Models
 Pass desired model as parameter of the train POST-request
 * Sklearn SVM
+* Sklearn Decision Tree
+* Sklearn Random Forest
 * FastText
 * Huggingface DistillBert
+* Huggingface GermanBert
 
 ## Startup
 1. `pip install -r requirements.txt`
-2. `$env:FLASK_APP = 'wsgi.py'; python -m flask run` or `gunicorn --bind 0.0.0.0:5000 wsgi:app`
+2. `CUDA_VISIBLE_DEVICES=0 & python -m wsgi` or `gunicorn --bind 0.0.0.0:5000 wsgi:app`
 3. Goto 127.0.0.1:5000 and check the api reference
 
 ## API
